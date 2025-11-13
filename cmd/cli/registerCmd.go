@@ -107,12 +107,6 @@ func runCmd() *cobra.Command {
 				return
 			}
 
-			// check ssh port is up
-			if !helper.CheckPortUp(sshPort) {
-				logger.Error("SSH port is not up, please check if SSH service is running", zap.Error(err))
-				return
-			}
-
 			// make sure sshIP is not empty
 			if sshIP == "" {
 				// get my public IP automatically
