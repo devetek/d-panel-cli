@@ -3,7 +3,7 @@ module github.com/devetek/d-panel-cli
 go 1.24.9
 
 require (
-	github.com/devetek/d-panel v0.5.0-alpha.0
+	github.com/devetek/d-panel v0.5.0-alpha.1
 	github.com/spf13/cobra v1.10.1
 	go.uber.org/zap v1.27.0
 )

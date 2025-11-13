@@ -43,11 +43,13 @@ jobs:
       - uses: wangyoucao577/go-release-action@v1.53
         env:
           GOPRIVATE: github.com/{organisation}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goversion: 1.24.9
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: ./cmd/cli
+          build_command: ./scripts/build.sh
           binary_name: dpid
           ldflags: -X "main.currentVersion=${{ env.RELEASE_TAG }}"
