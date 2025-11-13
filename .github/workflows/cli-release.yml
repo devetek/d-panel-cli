@@ -37,7 +37,8 @@ jobs:
 
       - name: Setup access for private go modules
         run: |
-          git config --global url."https://x-access-token:${{ secrets.GH_PAT }}@github.com".insteadOf "https://github.com"
+          echo ${secrets.GH_PAT} > ~/.netrc
+          chmod og-rw ~/.netrc
 
       - uses: wangyoucao577/go-release-action@v1.53
         env:
