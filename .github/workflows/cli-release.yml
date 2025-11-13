@@ -33,6 +33,8 @@ jobs:
         run: echo "OS_NAME=macOS" >> $GITHUB_ENV
       - uses: actions/checkout@v5
       - uses: wangyoucao577/go-release-action@v1.53
+        env:
+          GOPRIVATE: github.com/devetek
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goversion: 1.24.9
