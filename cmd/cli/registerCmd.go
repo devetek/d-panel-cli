@@ -20,6 +20,8 @@ var password string
 var sshIP string
 var sshPort string
 
+var httpPort string
+
 func runCmd() *cobra.Command {
 	// init zap logger
 	logger, err := zap.NewProduction()
@@ -121,11 +123,15 @@ func runCmd() *cobra.Command {
 				}
 			}
 
-			// get available port
-			availablePort, err := helper.FindAvailablePort()
-			if err != nil {
-				logger.Error("Error get available port", zap.Error(err))
-				return
+			if httpPort == "" {
+				// get available port
+				availablePort, err := helper.FindAvailablePort()
+				if err != nil {
+					logger.Error("Error get available port", zap.Error(err))
+					return
+				}
+
+				httpPort = fmt.Sprintf("%d", availablePort)
 			}
 
 			currentUser, err := user.Current()
@@ -140,7 +146,7 @@ func runCmd() *cobra.Command {
 				SecretID: fmt.Sprintf("%d", mySSHKey.ID),
 				Address:  sshIP,
 				SSHPort:  sshPort,
-				HTTPPort: fmt.Sprintf("%d", availablePort),
+				HTTPPort: httpPort,
 				Domain:   "",
 				SSHUser:  currentUser.Username,
 			}
@@ -167,6 +173,7 @@ func runCmd() *cobra.Command {
 	runCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "Youre registered password in dPanel")
 	runCmd.PersistentFlags().StringVarP(&sshIP, "ssh-ip", "i", "", "SSH IP of your machine")
 	runCmd.PersistentFlags().StringVarP(&sshPort, "ssh-port", "s", "22", "SSH port of your machine")
+	runCmd.PersistentFlags().StringVarP(&httpPort, "http-port", "t", "9000", "HTTP port of your machine")
 
 	runCmd.MarkPersistentFlagRequired("email")
 	runCmd.MarkPersistentFlagRequired("password")
