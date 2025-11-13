@@ -37,7 +37,9 @@ jobs:
 
       - name: Setup access for private go modules
         run: |
-          git config --global url.@github.com/.insteadOf">https://x-access-token:${secrets.GITHUB_TOKEN}@github.com/.insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          # This configures Git to use the provided GITHUB_TOKEN for HTTPS authentication
+          # when accessing GitHub repositories.
 
       - uses: wangyoucao577/go-release-action@v1.53
         env:
