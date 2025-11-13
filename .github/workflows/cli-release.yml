@@ -28,13 +28,20 @@ jobs:
         run: |
           echo "RELEASE_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
           echo "OS_NAME=${{ matrix.goos }}" >> $GITHUB_ENV
+
       - name: OS darwin
         if: matrix.goos == 'darwin'
         run: echo "OS_NAME=macOS" >> $GITHUB_ENV
+
       - uses: actions/checkout@v5
+
+      - name: Setup access for private go modules
+        run: |
+          git config --global url.@github.com/.insteadOf">https://x-access-token:${secrets.GITHUB_TOKEN}@github.com/.insteadOf "https://github.com/"
+
       - uses: wangyoucao577/go-release-action@v1.53
         env:
-          GOPRIVATE: github.com/devetek
+          GOPRIVATE: github.com/{organisation}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goversion: 1.24.9
