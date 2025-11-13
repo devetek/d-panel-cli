@@ -47,4 +47,3 @@ jobs:
           goarch: ${{ matrix.goarch }}
           build_command: ./scripts/build.sh
           binary_name: dpid
-          asset_name: "dpid-${{ env.RELEASE_TAG }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
