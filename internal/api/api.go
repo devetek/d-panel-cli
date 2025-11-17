@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	BaseURL = "https://pawon.terpusat.com"
+	BaseURL     = "https://pawon.terpusat.com"
+	FrontendURL = "https://cloud.terpusat.com"
 )
 
 type Client struct {
@@ -37,7 +38,18 @@ func (c *Client) CheckSessionExist() error {
 
 	// check if cookieValue is empty
 	if cookieValue == "" {
-		return fmt.Errorf("cookie is empty")
+		return fmt.Errorf("no session found")
+	}
+
+	// check if cookieValue is valid
+	profile, err := c.GetProfile()
+	if err != nil {
+		return err
+	}
+
+	// validate if session still valid
+	if profile.Error != "" {
+		return fmt.Errorf("%s", profile.Error)
 	}
 
 	return nil

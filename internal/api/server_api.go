@@ -14,7 +14,7 @@ type jsonResponseServer struct {
 	Code   int                         `json:"code"`
 	Status string                      `json:"status,omitempty"`
 	Data   dmachine.ResponseForPrivate `json:"data,omitempty"`
-	Error  any                         `json:"error,omitempty"`
+	Error  string                      `json:"error,omitempty"`
 }
 
 type jsonResponseSetup struct {
