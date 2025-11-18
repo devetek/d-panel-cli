@@ -6,9 +6,9 @@ if [ -z "${BIN_DIR}" ]; then
 	BIN_DIR=$(pwd)
 fi
 
-THE_ARCH_VER="v0.1.0-alpha.3"
+THE_ARCH_VER="v0.1.0-alpha.0"
 THE_ARCH_BIN=""
-DEST=${BIN_DIR}/dnocs-${THE_ARCH_VER}.tar.gz
+DEST=${BIN_DIR}/dnocs
 
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -78,10 +78,6 @@ else
 	echo "❗ Please install ${italic}curl${normal} or ${italic}wget${normal} to download DNOCS"
 	exit 1
 fi
-
-# extract the tar.gz file, and delete the tar.gz file
-tar -xzvf "${DEST}"
-rm "${DEST}"
 
 echo
 echo "🥳 DNOCS downloaded successfully to ${italic}${DEST}${normal}"
