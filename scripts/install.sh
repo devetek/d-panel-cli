@@ -79,6 +79,8 @@ else
 	exit 1
 fi
 
+chmod +x ${DEST}
+
 echo
 echo "🥳 DNOCS downloaded successfully to ${italic}${DEST}${normal}"
 echo "🔧 Move the binary to ${italic}/usr/local/bin/${normal} or another directory in your ${italic}PATH${normal} to use it globally:"
