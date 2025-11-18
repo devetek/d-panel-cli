@@ -23,10 +23,10 @@ case ${OS} in
 Linux*)
 	case ${ARCH} in
 	aarch64)
-		THE_ARCH_BIN="dnocs-${THE_ARCH_VER}-linux-arm64.tar.gz"
+		THE_ARCH_BIN="dnocs-${THE_ARCH_VER}-linux-arm64"
 		;;
 	x86_64)
-		THE_ARCH_BIN="dnocs-${THE_ARCH_VER}-linux-amd64.tar.gz"
+		THE_ARCH_BIN="dnocs-${THE_ARCH_VER}-linux-amd64"
 		;;
 	*)
 		THE_ARCH_BIN=""
