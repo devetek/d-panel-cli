@@ -13,7 +13,7 @@ jobs:
       matrix:
         # https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
         # Notes: Im not sure the architecture target 
-        goos: [linux, darwin]
+        goos: [linux]
         goarch: ["386", "arm", "amd64", "arm64"]
         exclude:
           # windows/386 and darwin/386 seems useless
@@ -47,6 +47,6 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           build_command: make build
-          binary_name: dpid
-          asset_name: "dpid-${{ env.RELEASE_TAG }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
+          binary_name: dnocs
+          asset_name: "dnocs-${{ env.RELEASE_TAG }}-${{ env.OS_NAME }}-${{ matrix.goarch }}"
           compress_assets: false

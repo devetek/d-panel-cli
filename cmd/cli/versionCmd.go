@@ -11,7 +11,7 @@ var currentVersion string = ""
 func versionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Prints dPanel ID CLI version",
+		Short: "Prints the version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(currentVersion)
 		},
