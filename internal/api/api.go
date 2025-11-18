@@ -17,7 +17,7 @@ type Client struct {
 
 func NewClient() *Client {
 	// for development purpose, we can set base URL from env variable
-	apiURL := os.Getenv("DPANEL_API_BASE_URL")
+	apiURL := os.Getenv("DNOCS_API_BASE_URL")
 	if apiURL != "" {
 		BaseURL = apiURL
 	}

@@ -8,8 +8,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "devetek",
-	Short: "dPanel ID CLI",
+	Use:   "dnocs",
+	Short: "dnocs ID CLI",
 	Long: `
 Simplify the process of managing resource such as user, machine, and application in dPanel (Devetek Panel).
 
