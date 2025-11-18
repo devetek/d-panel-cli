@@ -39,7 +39,7 @@ func (u *AuthCmd) login() *cobra.Command {
 		Short: "Authorize to access dPanel",
 		Run: func(cmd *cobra.Command, args []string) {
 			if u.email == "" || u.password == "" {
-				u.zapLogger.Error("Email and password are required")
+				logger.Error("Email and password are required")
 				return
 			}
 
