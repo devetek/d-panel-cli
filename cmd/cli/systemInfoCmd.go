@@ -1,18 +1,20 @@
 package main
 
 import (
+	"runtime"
+
 	"github.com/devetek/d-panel-cli/internal/logger"
 	"github.com/spf13/cobra"
 )
 
-var currentVersion string = "dev"
-
-func versionCmd() *cobra.Command {
+func systemInfoCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "version",
+		Use:   "info",
 		Short: "Prints the version",
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.Success("Version: " + currentVersion)
+			logger.Normal("Your System Information:")
+			logger.Success("OS: " + runtime.GOOS)
+			logger.Success("Arch: " + runtime.GOARCH)
 		},
 	}
 }

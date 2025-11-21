@@ -20,6 +20,11 @@ type MachineCmd struct {
 	sshIP    string
 	sshPort  string
 	httpPort string
+	// used when your machine want to expose dPanel agent behind proxy
+	// this option will replace domain with this custom, example input:
+	// - http://my-machine-01.devetek.app -> for insecure connection / HTTP
+	// - https://my-machine-01.devetek.app -> for Secure connection / HTTPS
+	domain string
 }
 
 func NewMachineCmd(logger *zap.Logger) *MachineCmd {
@@ -138,7 +143,7 @@ func (m *MachineCmd) create() *cobra.Command {
 				Address:  m.sshIP,
 				SSHPort:  m.sshPort,
 				HTTPPort: m.httpPort,
-				Domain:   "",
+				Domain:   m.domain,
 				SSHUser:  currentUser.Username,
 			}
 
@@ -165,6 +170,7 @@ func (m *MachineCmd) create() *cobra.Command {
 	runCmd.PersistentFlags().StringVarP(&m.sshIP, "ssh-ip", "i", "", "SSH IP of your machine")
 	runCmd.PersistentFlags().StringVarP(&m.sshPort, "ssh-port", "s", "22", "SSH port of your machine")
 	runCmd.PersistentFlags().StringVarP(&m.httpPort, "http-port", "t", "9000", "HTTP port of your machine")
+	runCmd.PersistentFlags().StringVarP(&m.domain, "http-domain", "d", "", "HTTP domain of agent (optional)")
 
 	return runCmd
 }

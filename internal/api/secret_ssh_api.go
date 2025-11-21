@@ -49,7 +49,7 @@ func (c *Client) CreateSecretSSH() (*jsonResponseSecretSSH, error) {
 	// http post create secret ssh key
 	url := c.BaseURL + "/api/v1/secret/ssh-key/create"
 	httpClient := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 30,
 	}
 	req, err := http.NewRequest("POST", url, strings.NewReader(string(jsonStr)))
 	if err != nil {

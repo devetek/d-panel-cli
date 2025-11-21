@@ -1,0 +1,19 @@
+services:
+  dpanel-cli-local-docker-1:
+    image: prakasa1904/ansible:ubuntu-22.04
+    hostname: dpanel-cli-local-docker-1
+    container_name: dpanel-cli-local-docker-1
+    privileged: true
+    ports:
+      - 10000:22
+    volumes:
+      # ssh config
+      - ${PWD}/ssh-key/sshd_config:/etc/ssh/sshd_config
+      - ${PWD}/ssh-key/authorized_keys:/root/.ssh/authorized_keys
+      # mount app to docker
+      - ${PWD}/cmd:/root/apps/d-panel-cli/cmd
+      - ${PWD}/internal:/root/apps/d-panel-cli/internal
+      - ${PWD}/scripts:/root/apps/d-panel-cli/scripts
+      - ${PWD}/go.mod:/root/apps/d-panel-cli/go.mod
+      - ${PWD}/go.sum:/root/apps/d-panel-cli/go.sum
+    restart: unless-stopped
