@@ -21,65 +21,95 @@ import (
 )
 
 var (
-	serviceCfg        = "/usr/lib/systemd/system/dpanel-tunnel.service"
-	serviceName       = "dpanel-tunnel"
-	configFolder      = "/opt/dpanel/tunnel"
-	configFile        = "config.json"
-	defaultTunnelHost = "tunnel.beta.devetek.app"
-	defaultTunnelPort = "2220"
-	defaultBaseURL    = "https://github.com/devetek/tuman/releases/download"
-	defaultVersion    = "v0.1.1-beta.1"
+	serviceCfg    = "/usr/lib/systemd/system/dpanel-tunnel.service"
+	serviceName   = "dpanel-tunnel"
+	configFolder  = "/opt/dpanel/tunnel"
+	configFile    = "config.json"
+	TunnelHost    = "tunnel.beta.devetek.app"
+	TunnelPort    = "2220"
+	binaryBaseURL = "https://github.com/devetek/tuman/releases/download"
+	binaryVersion = "v0.1.1-beta.1"
 )
 
 type tunnelServer struct {
 	host string
 	port string
+	// auth
 }
 
-type tunnelConfig struct {
+type tunnelService struct {
 	folder      string
 	name        string
 	serviceCfg  string
 	serviceName string
+	configs     []marijan.Config
 }
 
 type tunnel struct {
 	baseURL string
 	version string
 	bin     string
-	server  tunnelServer
-	config  tunnelConfig
+	server  tunnelServer  // tunnel server (any SSH server)
+	service tunnelService // tunnel service in this server
 }
 
 func NewTunnel() *tunnel {
 	// If we want to use different binary location, we can switch with env variable
 	apiURL := os.Getenv("DNOCS_TUNNEL_BASE_URL")
 	if apiURL != "" {
-		defaultBaseURL = apiURL
+		binaryBaseURL = apiURL
 	}
 
 	version := os.Getenv("DNOCS_TUNNEL_VERSION")
 	if version != "" {
-		defaultVersion = version
+		binaryVersion = version
 	}
 
 	client := &tunnel{
-		baseURL: defaultBaseURL,
-		version: defaultVersion,
+		baseURL: binaryBaseURL,
+		version: binaryVersion,
 		bin:     "marijan",
-		config: tunnelConfig{
+		server: tunnelServer{
+			host: TunnelHost,
+			port: TunnelPort,
+		},
+		service: tunnelService{
 			folder:      configFolder,
 			name:        configFile,
 			serviceCfg:  serviceCfg,
 			serviceName: serviceName,
-		},
-		server: tunnelServer{
-			host: defaultTunnelHost,
-			port: defaultTunnelPort,
+			configs:     []marijan.Config{},
 		},
 	}
 
 	return client
+}
+
+func (tun *tunnel) SetConfig(configs []marijan.Config) *tunnel {
+	tun.service.configs = configs
+
+	return tun
+}
+
+func (tun *tunnel) GetConfig() []marijan.Config {
+	var configs []marijan.Config
+	var finalPath = filepath.Join(tun.service.folder, tun.service.name)
+
+	// read tunnel config
+	// 1. Read the file content
+	fileBytes, err := os.ReadFile(finalPath)
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+		return configs
+	}
+
+	err = json.Unmarshal(fileBytes, &configs)
+	if err != nil {
+		fmt.Printf("Error unmarshaling JSON: %v\n", err)
+		return configs
+	}
+
+	return configs
 }
 
 func (tun *tunnel) fileName() string {
@@ -263,42 +293,15 @@ func (tun *tunnel) CreateService() error {
 }
 
 func (tun *tunnel) serviceConfig() error {
-	err := os.MkdirAll(tun.config.folder, 0755)
+	err := os.MkdirAll(tun.service.folder, 0755)
 	if err != nil {
 		return err
 	}
 
-	var finalPath = filepath.Join(tun.config.folder, tun.config.name)
-
-	var tunnelCOnfig = []marijan.Config{
-		{
-			// service for SSH service
-			NoTCP:        false,
-			ID:           "dpanel-ssh",
-			TunnelHost:   tun.server.host,
-			TunnelPort:   tun.server.port,
-			ListenerHost: "0.0.0.0",
-			ListenerPort: "2221",
-			ServiceHost:  "localhost",
-			ServicePort:  "22",
-			State:        marijan.ConfigStateActive,
-		},
-		{
-			// service for SSH service
-			NoTCP:        false,
-			ID:           "dpanel-http",
-			TunnelHost:   tun.server.host,
-			TunnelPort:   tun.server.port,
-			ListenerHost: "0.0.0.0",
-			ListenerPort: "8001",
-			ServiceHost:  "localhost",
-			ServicePort:  "9000",
-			State:        marijan.ConfigStateActive,
-		},
-	}
+	var finalPath = filepath.Join(tun.service.folder, tun.service.name)
 
 	// convert to json
-	jsonByte, err := json.Marshal(tunnelCOnfig)
+	jsonByte, err := json.Marshal(tun.service.configs)
 	if err != nil {
 		return err
 	}
@@ -341,7 +344,7 @@ User=root
 Group=root
 
 ; Service runtime configuration
-ExecStart="/usr/local/bin/{{.Bin}}" run --config "{{.Config}}" -v
+ExecStart="/usr/local/bin/{{.Bin}}" run --config "{{.Config}}"
 ExecReload=/bin/kill -USR2 $MAINPID
 ExecStop=/bin/kill -SIGTERM $MAINPID
 
@@ -359,7 +362,7 @@ WantedBy=multi-user.target
 	}{
 		Version: tun.version,
 		Bin:     tun.bin,
-		Config:  filepath.Join(tun.config.folder, tun.config.name),
+		Config:  filepath.Join(tun.service.folder, tun.service.name),
 	}
 
 	tmpl, err := template.New("dpanel-tunnel").Parse(baseTemplate)
@@ -367,7 +370,7 @@ WantedBy=multi-user.target
 		return err
 	}
 
-	file, err := os.Create(tun.config.serviceCfg)
+	file, err := os.Create(tun.service.serviceCfg)
 	if err != nil {
 		return err
 	}
@@ -380,7 +383,7 @@ WantedBy=multi-user.target
 	}
 
 	// enable systemd service
-	words := strings.Split(fmt.Sprintf("enable %s", tun.config.serviceName), " ")
+	words := strings.Split(fmt.Sprintf("enable %s", tun.service.serviceName), " ")
 	systemdEnableCMD := exec.Command("systemctl", words...)
 	_, err = systemdEnableCMD.Output()
 	if err != nil {
@@ -388,7 +391,7 @@ WantedBy=multi-user.target
 	}
 
 	// restart systemd service
-	words = strings.Split(fmt.Sprintf("start %s", tun.config.serviceName), " ")
+	words = strings.Split(fmt.Sprintf("start %s", tun.service.serviceName), " ")
 	systemdStartCMD := exec.Command("systemctl", words...)
 	_, err = systemdStartCMD.Output()
 	if err != nil {
