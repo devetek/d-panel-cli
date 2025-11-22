@@ -186,7 +186,7 @@ func (m *MachineCmd) create() *cobra.Command {
 				}
 
 				// set domain for this machine
-				m.httpPort = tunnelHTTPPort
+				m.httpPort = originHTTPPort
 				m.domain = router.Data.Domain
 			}
 
