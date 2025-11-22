@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +25,86 @@ type jsonResponseSetup struct {
 	Status string `json:"status,omitempty"`
 	Data   string `json:"data,omitempty"`
 	Error  any    `json:"error,omitempty"`
+}
+
+func (c *Client) IsRegistered() bool {
+	devetekDir, err := getDevetekDir()
+	if err != nil {
+		return false
+	}
+
+	machineConfig := filepath.Join(devetekDir, "machine.json")
+
+	machineContent, err := os.ReadFile(machineConfig)
+	if err != nil {
+		return false
+	}
+
+	var machine *dmachine.ResponseForPrivate
+	err = json.Unmarshal(machineContent, &machine)
+	if err != nil {
+		return false
+	}
+
+	if machine == nil {
+		return false
+	}
+
+	if machine.ID == 0 {
+		return false
+	}
+
+	// read session from file
+	cookieValue, err := c.readCookieFromFile()
+	if err != nil {
+		return false
+	}
+
+	// fetch to validate to dPanel
+	url := c.BaseURL + "/api/v1/server/detail/" + strconv.FormatInt(int64(machine.GetUint64ID()), 10)
+	httpClient := &http.Client{
+		Timeout: time.Second * 5,
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false
+	}
+
+	// set cookie to request header, with cookie name dcloud_sid
+	req.Header.Set("Cookie", "dcloud_sid="+cookieValue)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	// read response header
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	// read response body with json decoder
+	var server = new(jsonResponseServer)
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(server)
+	if err != nil {
+		return false
+	}
+
+	if server.Error != "" {
+		return false
+	}
+
+	if server.Code != 200 {
+		return false
+	}
+
+	if server.Data.ID == 0 {
+		return false
+	}
+
+	return true
 }
 
 // register new server

@@ -26,8 +26,10 @@ func init() {
 
 	rootCmd.AddCommand(
 		NewAuthCmd(logger).Connect(),
+		NewTunnelCmd(logger).Connect(),
 		NewMachineCmd(logger).Connect(),
 		versionCmd(),
+		systemInfoCmd(),
 	)
 }
 
