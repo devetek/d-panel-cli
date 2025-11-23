@@ -11,9 +11,9 @@ services:
       - ${PWD}/ssh-key/sshd_config:/etc/ssh/sshd_config
       - ${PWD}/ssh-key/authorized_keys:/root/.ssh/authorized_keys
       # mount app to docker
-      - ${PWD}/cmd:/root/apps/d-panel-cli/cmd
-      - ${PWD}/internal:/root/apps/d-panel-cli/internal
-      - ${PWD}/scripts:/root/apps/d-panel-cli/scripts
-      - ${PWD}/go.mod:/root/apps/d-panel-cli/go.mod
-      - ${PWD}/go.sum:/root/apps/d-panel-cli/go.sum
+      # - ${PWD}/cmd:/root/apps/d-panel-cli/cmd
+      # - ${PWD}/internal:/root/apps/d-panel-cli/internal
+      # - ${PWD}/scripts:/root/apps/d-panel-cli/scripts
+      # - ${PWD}/go.mod:/root/apps/d-panel-cli/go.mod
+      # - ${PWD}/go.sum:/root/apps/d-panel-cli/go.sum
     restart: unless-stopped

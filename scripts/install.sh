@@ -86,4 +86,7 @@ echo "🥳 DNOCS downloaded successfully to ${italic}${DEST}${normal}"
 echo "🔧 Move the binary to ${italic}/usr/local/bin/${normal} or another directory in your ${italic}PATH${normal} to use it globally:"
 echo "   ${bold}sudo mv ${DEST} /usr/local/bin/${normal}"
 echo
+
+mv ${DEST} /usr/local/bin/
+
 echo "⭐ If you like DNOCS, please give it a star on GitHub: ${italic}https://github.com/devetek/d-panel-cli${normal}"
