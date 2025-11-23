@@ -37,7 +37,7 @@ Available Commands:
   auth        Manage dPanel session
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
-  info        Prints the version
+  info        Your System Information
   machine     Manage dPanel machine
   tunnel      Manage dPanel tunnel
   version     Prints the version
