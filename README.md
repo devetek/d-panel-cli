@@ -37,11 +37,14 @@ Available Commands:
   auth        Manage dPanel session
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
+  info        Prints the version
   machine     Manage dPanel machine
+  tunnel      Manage dPanel tunnel
   version     Prints the version
 
 Flags:
-  -h, --help   help for dnocs
+  -h, --help      help for dnocs
+  -v, --version   version for dnocs
 
 Use "dnocs [command] --help" for more information about a command.
 ```
