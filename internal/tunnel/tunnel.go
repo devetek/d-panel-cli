@@ -21,14 +21,15 @@ import (
 )
 
 var (
-	serviceCfg    = "/usr/lib/systemd/system/dpanel-tunnel.service"
-	serviceName   = "dpanel-tunnel"
-	configFolder  = "/opt/dpanel/tunnel"
-	configFile    = "config.json"
-	TunnelHost    = "tunnel.beta.devetek.app"
-	TunnelPort    = "2220"
-	binaryBaseURL = "https://github.com/devetek/tuman/releases/download"
-	binaryVersion = "v0.1.1-beta.1"
+	serviceCfg        = "/usr/lib/systemd/system/dpanel-tunnel.service"
+	serviceName       = "dpanel-tunnel"
+	configFolder      = "/opt/dpanel/tunnel"
+	configFile        = "config.json"
+	TunnelHost        = "tunnel.beta.devetek.app"
+	TunnelPort        = "2220"
+	BinaryBaseURL     = "https://github.com/devetek/tuman/releases"
+	binaryDownloadURL = BinaryBaseURL + "/download"
+	binaryVersion     = "v0.1.1-beta.2"
 )
 
 type tunnelServer struct {
@@ -57,7 +58,7 @@ func NewTunnel() *tunnel {
 	// If we want to use different binary location, we can switch with env variable
 	apiURL := os.Getenv("DNOCS_TUNNEL_BASE_URL")
 	if apiURL != "" {
-		binaryBaseURL = apiURL
+		binaryDownloadURL = apiURL
 	}
 
 	version := os.Getenv("DNOCS_TUNNEL_VERSION")
@@ -66,7 +67,7 @@ func NewTunnel() *tunnel {
 	}
 
 	client := &tunnel{
-		baseURL: binaryBaseURL,
+		baseURL: binaryDownloadURL,
 		version: binaryVersion,
 		bin:     "marijan",
 		server: tunnelServer{
@@ -112,6 +113,30 @@ func (tun *tunnel) GetConfig() []marijan.Config {
 	return configs
 }
 
+func (tun *tunnel) SetNewVersion(version string) {
+	tun.version = version
+}
+
+func (tun *tunnel) GetCurrentVersion() string {
+	cmd := exec.Command("marijan", "version")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(output))
+}
+
+func (tun *tunnel) GetNewVersion() string {
+	newVersion, err := getLatestReleaseVersion()
+	if err != nil {
+		return ""
+	}
+
+	return newVersion
+}
+
 func (tun *tunnel) fileName() string {
 	return tun.bin + "-" + tun.version + "-" + runtime.GOOS + "-" + runtime.GOARCH + ".tar.gz"
 }
@@ -135,7 +160,6 @@ func (tun *tunnel) pwd() string {
 }
 
 func (tun *tunnel) destination() string {
-	// current directory
 	current := tun.pwd()
 	if current == "" {
 		return ""
@@ -277,6 +301,11 @@ func (tun *tunnel) Extract() error {
 	return nil
 }
 
+// check if systemd service exist
+func (tun *tunnel) IsServiceExist() bool {
+	return true
+}
+
 func (tun *tunnel) CreateService() error {
 	// create file configuration
 	err := tun.serviceConfig()
@@ -383,17 +412,25 @@ WantedBy=multi-user.target
 	}
 
 	// enable systemd service
-	words := strings.Split(fmt.Sprintf("enable %s", tun.service.serviceName), " ")
-	systemdEnableCMD := exec.Command("systemctl", words...)
-	_, err = systemdEnableCMD.Output()
-	if err != nil {
+	if tun.serviceTrigger("enable") != nil {
 		return err
 	}
 
-	// restart systemd service
-	words = strings.Split(fmt.Sprintf("start %s", tun.service.serviceName), " ")
-	systemdStartCMD := exec.Command("systemctl", words...)
-	_, err = systemdStartCMD.Output()
+	// start systemd service
+	if tun.serviceTrigger("start") != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tun *tunnel) serviceTrigger(action string) error {
+	// trigger systemd service
+	words := strings.Split(fmt.Sprintf("%s %s", action, tun.service.serviceName), " ")
+	systemdCMD := exec.Command("systemctl", words...)
+
+	// TODO: trap output and stream real-time
+	_, err := systemdCMD.Output()
 	if err != nil {
 		return err
 	}

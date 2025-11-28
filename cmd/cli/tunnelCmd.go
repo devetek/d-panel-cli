@@ -10,6 +10,7 @@ import (
 	"github.com/devetek/tuman/pkg/marijan"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"golang.org/x/mod/semver"
 )
 
 type TunnelCmd struct {
@@ -34,10 +35,70 @@ func NewTunnelCmd(logger *zap.Logger) *TunnelCmd {
 
 func (m *TunnelCmd) Connect() *cobra.Command {
 	m.cmd.AddCommand(
+		m.upgrade(),
 		m.create(),
 	)
 
 	return m.cmd
+}
+
+func (m *TunnelCmd) upgrade() *cobra.Command {
+	var runCmd = &cobra.Command{
+		Use:   "upgrade",
+		Short: "Upgrade marijan binary",
+		Long:  fmt.Sprintf("Upgrade marijan binary to the latest version, check latest version in %s", tunnel.BinaryBaseURL),
+		Run: func(cmd *cobra.Command, args []string) {
+			// init dPanel client
+			client := api.NewClient()
+
+			// check if session exist
+			err := client.CheckSessionExist()
+			if err != nil {
+				logger.Error("Please login to your dPanel account, use command 'dnocs auth login --email=\"email@email.com\" --password=\"password\"'")
+				return
+			}
+
+			var tunnelCreation = tunnel.NewTunnel()
+			currentVersion := tunnelCreation.GetCurrentVersion()
+			newVersion := tunnelCreation.GetNewVersion()
+
+			if newVersion == "" {
+				logger.Error("Failed to fetch the new Marijan version. Please try again later.")
+				return
+			}
+
+			switch semver.Compare(currentVersion, newVersion) {
+			case -1:
+				// Upgrade here
+				logger.Normal(fmt.Sprintf("Your current version is %s, and new version available is %s", currentVersion, newVersion))
+				logger.Normal("Installing new version...")
+
+				tunnelCreation.SetNewVersion(newVersion)
+
+				err = tunnelCreation.Download()
+				if err != nil {
+					logger.Error(err.Error())
+				}
+
+				err = tunnelCreation.Extract()
+				if err != nil {
+					logger.Error(err.Error())
+				}
+				return
+			case 1:
+				logger.Success("You are running the latest version " + currentVersion)
+				return
+			case 0:
+				logger.Success("You are running the latest version " + currentVersion)
+				return
+			default:
+				logger.Success("Unknown version checker status, makesure your Marijan version is valid semver")
+				return
+			}
+		},
+	}
+
+	return runCmd
 }
 
 func (m *TunnelCmd) create() *cobra.Command {
