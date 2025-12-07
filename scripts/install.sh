@@ -6,7 +6,7 @@ if [ -z "${BIN_DIR}" ]; then
 	BIN_DIR=$(pwd)
 fi
 
-THE_ARCH_VER="v0.1.1-alpha.1"
+THE_ARCH_VER="v0.1.1-alpha.2"
 THE_ARCH_BIN=""
 DEST=${BIN_DIR}/dnocs
 
