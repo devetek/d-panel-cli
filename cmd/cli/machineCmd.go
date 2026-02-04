@@ -11,7 +11,6 @@ import (
 	"github.com/devetek/d-panel-cli/internal/tunnel"
 	"github.com/devetek/d-panel/pkg/dmachine"
 	"github.com/devetek/d-panel/pkg/drouter"
-	"github.com/devetek/d-panel/pkg/dsecret"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -72,38 +71,15 @@ func (m *MachineCmd) create() *cobra.Command {
 				return
 			}
 
-			// get list secret ssh
-			secretSSH, err := client.GetListSecretSSH()
+			// always create new SSH key
+			newSSHKey, err := client.CreateSecretSSH()
 			if err != nil {
-				logger.Error("Error get list secret ssh: " + err.Error())
+				logger.Error("Error create secret ssh: " + err.Error())
 				return
 			}
 
-			var mySSHKey dsecret.Response
-			if secretSSH.Data.Pagination.TotalItem == 0 {
-				// create new SSH key
-				newSSHKey, err := client.CreateSecretSSH()
-				if err != nil {
-					logger.Error("Error create secret ssh: " + err.Error())
-					return
-				}
-
-				// assign from new SSH key
-				mySSHKey = newSSHKey.Data
-			} else {
-				// get first secret ssh from existing
-				mySSHKey = secretSSH.Data.Secrets[0]
-
-				// get detail secret ssh
-				detailSSHKey, err := client.GetSecretSSHByID(fmt.Sprintf("%d", mySSHKey.ID))
-				if err != nil {
-					logger.Error("Error get detail secret ssh: " + err.Error())
-					return
-				}
-
-				// assign from detail SSH key
-				mySSHKey = detailSSHKey.Data
-			}
+			// assign from new SSH key
+			mySSHKey := newSSHKey.Data
 
 			if !helper.IsSSHAuthorized(mySSHKey.Data.Data()["public"]) {
 				// append ssh key to authorized_keys file
@@ -174,14 +150,14 @@ func (m *MachineCmd) create() *cobra.Command {
 					Type:        "proxy_pass",
 					Name:        fmt.Sprintf("http-%s-to-%s", tunnelHTTPPort, originHTTPPort),
 					Domain:      fmt.Sprintf("http-%s-to-%s 1", tunnelHTTPPort, originHTTPPort),
-					MachineID:   11,
+					MachineID:   157,
 					Upstream:    fmt.Sprintf("localhost:%s", tunnelHTTPPort),
 				}
 
 				router, err := client.CreateRouter(payload)
 				if err != nil {
 					logger.Error("Failed to create HTTP server for this machine, with error " + err.Error())
-					logger.Error("Login to dPanel, open https://cloud-beta.terpusat.com/router, and delete existing domain")
+					logger.Error("Login to dPanel, open https://cloud.terpusat.com/router, and delete existing domain")
 					return
 				}
 
