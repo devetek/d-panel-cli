@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	BaseURL     = "https://pawon-beta.terpusat.com"
+	BaseURL     = "https://pawon.terpusat.com"
 	FrontendURL = "https://cloud.terpusat.com"
 )
 
